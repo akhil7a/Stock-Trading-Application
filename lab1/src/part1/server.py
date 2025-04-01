@@ -1,66 +1,80 @@
+import threading
 import socket
-import time
-from ThreadPool import ThreadPool
-# import queue
-# import threading
+import queue
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_threads')
+parser.add_argument('--host')
+parser.add_argument('--port')
 args = parser.parse_args()
 
-no_of_threads = 1 if args.num_threads == None else args.num_threads
+number_of_threads = 2 if args.num_threads == None else int(args.num_threads)
+host = '127.0.0.1' if args.host == None else args.host
+port = 1234 if args.port == None else int(args.port)
 
-# stock info dictionary
+print('number_of_threads =',number_of_threads)
+
+# create socket object
+socket_connection = socket.socket()
+socket_connection.bind((host, port))
+socket_connection.listen(5)
+
+print("Server started on ",host,":",port)
+
+thread_pool_list=[]
+task_queue=queue.Queue()
+
+# Dictionary for Stock names
 stock_info = {
     "GameStart": {
         "price": 20,
-        "trading_volume": 0
+        "tradingVol": 0
     },
     "FishCo": {
         "price": 100,
-        "trading_volume": 0
+        "tradingVol": 0
     }
 }
 
-# method to lookup company and return price if found
-def Lookup(stock_company):
-    time.sleep(3)
-    if(stock_info.get(stock_company) != None):
-        price = str(stock_info.get(stock_company).get('price'))
+# function to lookup company names and return their prices if found
+def lookup(stock_company_name):
+    if(stock_info.get(stock_company_name) != None):
+        stock_price = str(stock_info.get(stock_company_name).get('price'))
     else:
-        price = '-1'
-    
-    return price
+        stock_price = "-1"
 
-# method to handle client requests
-def handle_client_request(client_socket):
-    print("client_docket in handle ", client_socket, time.time())
-    
-    stock_company = client_socket.recv(1024).decode()
+    return stock_price
 
-    stock_price = Lookup(stock_company)
-    # time.sleep(3)
-    client_socket.send(stock_price.encode())
+# function to check semantics of client input and perform actions accordingly
+def check_task_queue():
+    while True:
+        try:
+            client_socket = task_queue.get(timeout=0.1)
+            client_arguments = client_socket.recv(1024).decode()
 
-    client_socket.close()
+            # Converting string to list back again
+            client_arguments=eval(client_arguments)
+            function_name=client_arguments[0]
+            stock_company_name=client_arguments[1]
+        
+            if function_name=='lookup':
+                result = lookup(stock_company_name)
+                client_socket.send(result.encode())
+            else:
+                client_socket.send('Wrong Input'.encode())
+            client_socket.close()
+        except queue.Empty:
+            pass
 
-sock = socket.socket()
-host = "127.0.0.1"
-print(host)
-port = 1198
-sock.bind((host, port))
-
-# initialising a pool of threads
-threadpool = ThreadPool(no_of_threads)
-
-sock.listen(5)
+# Loop to create Thread Pool
+for i in range(number_of_threads):
+    thread = threading.Thread(target=check_task_queue)
+    thread.start()
+    thread_pool_list.append(thread)
 
 while True:
-    client_socket, client_address = sock.accept()
-    print("client_docket in main ", client_socket, time.time())
-    # time.sleep(0.1)
-    # creating lambda function to pass socket context into the task queue
-    client_task = lambda: handle_client_request(client_socket)
-    threadpool.push_task(client_task)
-    # threadpool.submit_task(client_task)
+    client_socket, client_address = socket_connection.accept()
+
+    # Put client_socket from client to task_queue
+    task_queue.put(client_socket)
