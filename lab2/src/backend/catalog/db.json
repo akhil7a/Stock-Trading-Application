@@ -1,0 +1,26 @@
+[
+    {
+        "name": "GameStart",
+        "price": 100,
+        "quantity": 100,
+        "trading_volume": 0
+    },
+    {
+        "name": "FishCo",
+        "price": 150,
+        "quantity": 100,
+        "trading_volume": 0
+    },
+    {
+        "name": "BoarCo",
+        "price": 120,
+        "quantity": 100,
+        "trading_volume": 0
+    },
+    {
+        "name": "MenhirCo",
+        "price": 140,
+        "quantity": 100,
+        "trading_volume": 0
+    }
+]
