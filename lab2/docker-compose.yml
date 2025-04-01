@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  catalog:
+    build: 
+      context: .
+      dockerfile: Dockerfile.catalog
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./src/backend/catalog/db.json:/app/db.json
+  order:
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    ports:
+      - "8089:8089"
+    depends_on:
+      - catalog
+    volumes:
+      - ./src/backend/order/log.json:/app/log.json
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3010:3010"
+    depends_on:
+      - catalog
+      - order

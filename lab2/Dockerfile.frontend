@@ -1,0 +1,9 @@
+FROM python:3.8-alpine
+
+RUN pip install requests
+
+WORKDIR /app
+
+COPY src/frontend/app.py .
+
+ENTRYPOINT ["python", "app.py"]
