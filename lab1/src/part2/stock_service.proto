@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+service StockService {
+    rpc Lookup(StockCompany) returns (StockInfo) {}
+
+    rpc Trade(TradingInfo) returns (TradingResponse) {}
+
+    rpc Update(StockUpdate) returns (UpdateResponse) {}
+
+}
+
+message StockCompany {
+    string stock_name = 1;
+}
+
+message StockInfo {
+    float price = 1;
+    optional int32 trading_volume = 2;
+}
+
+enum TradingType {
+    BUY = 0;
+    SELL = 1;
+}
+
+message TradingInfo {
+    string stock_name = 1;
+    int32 trading_volume = 2;
+    TradingType type = 3;
+}
+
+message TradingResponse {
+    int32 response = 1;
+}
+
+message StockUpdate {
+    string stock_name = 1;
+    float price = 2;
+}
+
+message UpdateResponse {
+    int32 response = 1;
+}
