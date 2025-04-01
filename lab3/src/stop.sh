@@ -1,0 +1,5 @@
+kill $(lsof -t -i:3000)
+kill $(lsof -t -i:4000)
+kill $(lsof -t -i:4001)
+kill $(lsof -t -i:4002)
+kill $(lsof -t -i:5000)
